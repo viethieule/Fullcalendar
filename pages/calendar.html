@@ -7,28 +7,28 @@
     <!-- Tell the browser to be responsive to screen width -->
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.css" />
     <!-- Ionicons -->
     <link
       rel="stylesheet"
-      href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css"
+      href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.css"
     />
     <!-- fullCalendar -->
-    <link rel="stylesheet" href="../plugins/fullcalendar/main.min.css" />
+    <link rel="stylesheet" href="../plugins/fullcalendar/main.css" />
     <link
       rel="stylesheet"
-      href="../plugins/fullcalendar-daygrid/main.min.css"
+      href="../plugins/fullcalendar-daygrid/main.css"
     />
     <link
       rel="stylesheet"
-      href="../plugins/fullcalendar-timegrid/main.min.css"
+      href="../plugins/fullcalendar-timegrid/main.css"
     />
-    <link
+    <!-- <link
       rel="stylesheet"
       href="../plugins/fullcalendar-bootstrap/main.min.css"
-    />
+    /> -->
     <!-- Theme style -->
-    <link rel="stylesheet" href="../dist/css/adminlte.min.css" />
+    <link rel="stylesheet" href="../dist/css/adminlte.css" />
     <!-- Google Font: Source Sans Pro -->
     <link
       href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700"
@@ -836,7 +836,7 @@
     <!-- jQuery UI -->
     <script src="../plugins/jquery-ui/jquery-ui.min.js"></script>
     <!-- AdminLTE App -->
-    <script src="../dist/js/adminlte.min.js"></script>
+    <script src="../dist/js/adminlte.js"></script>
     <!-- AdminLTE for demo purposes -->
     <script src="../dist/js/demo.js"></script>
     <!-- fullCalendar 2.2.5 -->
@@ -845,10 +845,11 @@
     <script src="../plugins/fullcalendar-daygrid/main.min.js"></script>
     <script src="../plugins/fullcalendar-timegrid/main.min.js"></script>
     <script src="../plugins/fullcalendar-interaction/main.min.js"></script>
-    <script src="../plugins/fullcalendar-bootstrap/main.min.js"></script>
+    <!-- <script src="../plugins/fullcalendar-bootstrap/main.js"></script> -->
     <!-- Page specific script -->
     <script>
-      $(function () {
+      $(async function () {
+        await getSchedule();
         /* initialize the calendar
      -----------------------------------------------------------------*/
         //Date for the calendar events (dummy data)
@@ -863,7 +864,7 @@
         var calendarEl = document.getElementById("calendar");
 
         var calendar = new Calendar(calendarEl, {
-          plugins: ["bootstrap", "interaction", "timeGrid"],
+          plugins: ["interaction", "timeGrid"],
           header: {
             left: "prev,next today",
             center: "title",
@@ -873,7 +874,6 @@
           allDaySlot: false,
           minTime: "09:00:00",
           maxTime: "21:00:00",
-          themeSystem: "bootstrap",
           //Random default events
           events: [
             {
@@ -922,6 +922,18 @@
 
         /* ADDING EVENTS HERE */
       });
+    
+      async function getSchedule() {
+        $.ajax({
+          method: "POST",
+          data: { "start": "06-15-2020" },
+          async: true,
+          url: "https://localhost:44355/Services/Schedule/Get"
+        })
+        .done(function (data) {
+          console.log(data);
+        });
+      }
     </script>
   </body>
 </html>
