@@ -23,6 +23,7 @@
     /> -->
     <!-- Theme style -->
     <link rel="stylesheet" href="../dist/css/adminlte.css" />
+    <link rel="stylesheet" href="../dist/css/site.css" />
     <!-- Google Font: Source Sans Pro -->
     <link
       href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700"
@@ -877,8 +878,21 @@
           firstDay: 1,
           events,
           eventRender: function (info) {
+            console.log(info);
+            const { el, event } = info;
+            var branchNode = document.createElement('p');
+            branchNode.innerText = event.extendedProps.branch;
+            el.children[0].appendChild(branchNode)
+            
             debugger;
-          }
+            const recurringDef = event._def.recurringDef.typeData; 
+            const sessionNumber = getCurrentRecurrenceNumber(recurringDef.startRecur, event.start, recurringDef.daysOfWeek);
+            var sessionNode = document.createElement('p');
+            sessionNode.innerText = sessionNumber + '/' + event.extendedProps.sessions;
+            el.children[0].appendChild(sessionNode);
+
+            return info.el;
+          },
         });
 
         calendar.render();
@@ -890,6 +904,7 @@
       async function getSchedule() {
         try {
           const data = await ajaxSchedule();
+          console.log(data);
           if (data && data.Schedules) {
             /*
             {
@@ -904,6 +919,7 @@
             }
           */
             const events = data.Schedules.map((schedule) => {
+              const id = schedule.Id;
               const title = schedule.Class.Name + " - " + schedule.Song;
               const daysOfWeek = schedule.DaysPerWeek.split("").map(
                 (day) => +day
@@ -918,8 +934,11 @@
               const color = schedule.Branch === "Q3" ? "#00c0ef" : "#f39c12";
               const backgroundColor = color;
               const borderColor = color;
+              const branch = schedule.Branch;
+              const sessions = schedule.Sessions;
 
-              return {
+              const eventObject = {
+                id,
                 title,
                 daysOfWeek,
                 startTime,
@@ -928,7 +947,13 @@
                 endRecur,
                 backgroundColor,
                 borderColor,
+                extendedProps: {
+                  branch,
+                  sessions
+                }
               };
+
+              return eventObject;
             });
 
             return events;
@@ -957,6 +982,15 @@
           return new Date(+result[1]);
         }
         return value;
+      }
+
+      function getCurrentRecurrenceNumber(startRecur, currentDate, daysOfWeek) {
+        var daysPerWeek = daysOfWeek.length;
+        // https://stackoverflow.com/questions/9129928/how-to-calculate-number-of-days-between-two-dates
+        var numberOfSessionGoneBy = Math.floor(currentDate.diff(startRecur, 'days') / 7) * daysPerWeek;
+
+        var currentNumberOfSessionInWeek = daysOfWeek.indexOf(currentDate.getDay()) + 1;
+        return numberOfSessionGoneBy + currentNumberOfSessionInWeek;
       }
 
       async function ajaxSchedule() {
