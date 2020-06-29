@@ -791,19 +791,30 @@
                     <thead id="calendarHead"></thead>
                     <tbody id="calendarBody">
                       <tr>
-                        <td>9:00 - 10:00</td>
+                        <td>9:00<br />- 10:00</td>
                         <td></td>
                         <td></td>
                         <td>
-                          <div class="mistake-event">
-                            <p class="mistake-event-class">Múa đương đại</p>
-                            <p class="mistake-event-song">Một đời đợi người</p>
+                          <div class="mistake-event mistake-event-q3">
+                            <p class="mistake-event-class">Dance cover</p>
+                            <p class="mistake-event-song">We don't talk anymore</p>
                             <span
                               class="mistake-event-info"
                               style="margin-right: 5px;"
                               >3/6</span
                             >
                             <span class="mistake-event-info">14/20</span>
+                            <span class="mistake-event-info">Q3</span>
+                          </div>
+                          <div class="mistake-event mistake-event-pn">
+                            <p class="mistake-event-class">Sexy dance beginner</p>
+                            <p class="mistake-event-song">Bad Romance</p>
+                            <span
+                              class="mistake-event-info"
+                              style="margin-right: 5px;"
+                              >5/6</span
+                            >
+                            <span class="mistake-event-info">3/20</span>
                             <span class="mistake-event-info">PN</span>
                           </div>
                         </td>
@@ -859,14 +870,14 @@
     <!-- Page specific script -->
     <script>
       $(async function () {
-        renderCalendar();
+        await renderCalendar();
       });
 
-      function renderCalendar() {
+      async function renderCalendar() {
         // render days of current week header
         renderDaysOfWeek();
         // render schedule data
-        renderSchedule();
+        await renderSchedule();
       }
 
       function renderDaysOfWeek() {
@@ -891,14 +902,21 @@
         $("#calendarHead").append(weekTableHead);
       }
 
-      function renderSchedule() {
+      async function renderSchedule() {
+        const eventsByTime = await getSchedule();
+        let tr = $('<tr></tr>');
+
+        eventsByTime.forEach(eventGroup => {
+            let tdTime = $('<td></td>').text(`${eventGroup.hours}:${eventGroup.minutes} - ${eventGroup.hours + 1}:${eventGroup.minutes}`);
+        });
+
         var html =
           "<tr><td>9:00 - 10:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>";
         
         // $("#calendarBody").append(html);
       }
 
-      function renderEventTag() {
+      function renderEventTag(event) {
         var html = `
             <div class="mistake-event">
                 <p class="mistake-event-class">Múa đương đại</p>
@@ -918,6 +936,30 @@
         try {
           const data = await ajaxSchedule();
           console.log(data);
+
+          if (data && data.Schedules) {
+            const eventsByTime = data.Schedules
+                .reduce((result, ele) => {
+                    const { Hours: hours, Minutes: minutes } = ele.StartTime;
+
+                    var eventGroup = result.find(r => r.hours === hours && r.minutes === minutes);
+                    if (!eventGroup) {
+                        result.push({
+                            hours,
+                            minutes,
+                            events: [ele]
+                        });
+                    } else {
+                        eventGroup.events.push(ele);
+                    }
+
+                    return result;
+                }, [])
+                .sort(compareTime);
+
+            console.log(eventsByTime);
+            return eventsByTime;
+          }
         } catch (err) {
           console.log(err);
           return [];
@@ -934,6 +976,12 @@
         return `${formatLeadingZero(time.Hours)}:${formatLeadingZero(
           time.Minutes
         )}`;
+      }
+
+      function compareTime(t1, t2) {
+        const { hours: h1, minutes: m1 } = t1;
+        const { hours: h2, minutes: m2 } = t2;
+        return h1 > h2 ? 1 : h1 < h2 ? -1 : m1 > m2 ? 1 : m1 < m2 ? -1 : 0;
       }
 
       function dateRevive(jsonDate) {

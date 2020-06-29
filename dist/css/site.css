@@ -1,12 +1,23 @@
 .mistake-event {
-    background-color: #007BFF;
     padding: 7px;
     color: white;
     width: 100%;
 }
 
-#calendarBody tr td:not(:first-child) {
-    width: 13%;
+.mistake-event-q3 {
+    background-color: #007BFF;
+}
+
+.mistake-event-pn {
+    background-color: #17a2b8;
+}
+
+#calendarHead tr th:not(:first-child) {
+    width: 13.4%;
+}
+
+#calendarBody tr td:first-child {
+    text-align: center;
 }
 
 .mistake-event-class {
@@ -25,4 +36,8 @@
 
 table#calendar, th, td {
     border: 1px solid #DDDDDD;
+}
+
+#calendar {
+    font-size: 14px;
 }
