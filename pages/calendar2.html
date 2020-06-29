@@ -790,39 +790,7 @@
                   <table id="calendar" width="100%">
                     <thead id="calendarHead"></thead>
                     <tbody id="calendarBody">
-                      <tr>
-                        <td>9:00<br />- 10:00</td>
-                        <td></td>
-                        <td></td>
-                        <td>
-                          <div class="mistake-event mistake-event-q3">
-                            <p class="mistake-event-class">Dance cover</p>
-                            <p class="mistake-event-song">We don't talk anymore</p>
-                            <span
-                              class="mistake-event-info"
-                              style="margin-right: 5px;"
-                              >3/6</span
-                            >
-                            <span class="mistake-event-info">14/20</span>
-                            <span class="mistake-event-info">Q3</span>
-                          </div>
-                          <div class="mistake-event mistake-event-pn">
-                            <p class="mistake-event-class">Sexy dance beginner</p>
-                            <p class="mistake-event-song">Bad Romance</p>
-                            <span
-                              class="mistake-event-info"
-                              style="margin-right: 5px;"
-                              >5/6</span
-                            >
-                            <span class="mistake-event-info">3/20</span>
-                            <span class="mistake-event-info">PN</span>
-                          </div>
-                        </td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                      </tr>
+                      
                     </tbody>
                   </table>
                 </div>
@@ -869,6 +837,8 @@
     <!-- <script src="../plugins/fullcalendar-bootstrap/main.js"></script> -->
     <!-- Page specific script -->
     <script>
+      var currentDaysOfWeek = [];
+
       $(async function () {
         await renderCalendar();
       });
@@ -881,17 +851,15 @@
       }
 
       function renderDaysOfWeek() {
-        let currentDate = moment();
+        let currentDate = moment("2020-06-15");
 
         var weekStart = currentDate.clone().startOf("isoWeek");
 
-        var days = [];
-
         for (var i = 0; i <= 6; i++) {
-          days.push(moment(weekStart).add(i, "days"));
+          currentDaysOfWeek.push(moment(weekStart).add(i, "days"));
         }
 
-        var weekTableData = days
+        var weekTableData = currentDaysOfWeek
           .map((day) => {
             var dayLocale = capitalizeFirstLetter(day.locale("vi").format("dddd D/M"));
             return `<th>${dayLocale}</th>`;
@@ -904,32 +872,59 @@
 
       async function renderSchedule() {
         const eventsByTime = await getSchedule();
-        let tr = $('<tr></tr>');
 
         eventsByTime.forEach(eventGroup => {
-            let tdTime = $('<td></td>').text(`${eventGroup.hours}:${eventGroup.minutes} - ${eventGroup.hours + 1}:${eventGroup.minutes}`);
-        });
+            let tr = $('<tr></tr>');
+            let tdTime = $('<td></td>')
+                .text(`${eventGroup.hours}:${eventGroup.minutes} - ${eventGroup.hours + 1}:${eventGroup.minutes}`)
+                .appendTo(tr);
+            
+            currentDaysOfWeek.forEach(date => {
+                let tdEvents = $('<td></td>')
+                let divEvents = eventGroup.events
+                    .reduce((jObject, event) => {
+                        if (event.DaysPerWeek.indexOf(date.day().toString()) !== -1) {
+                            jObject = jObject.add(renderEventTag(event, date.toDate()));
+                        }
+                        return jObject;
+                    }, $())
+                    .appendTo(tdEvents);
+                
+                tdEvents.appendTo(tr);
+            });
 
-        var html =
-          "<tr><td>9:00 - 10:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>";
-        
-        // $("#calendarBody").append(html);
+            tr.appendTo('#calendarBody')
+        });
       }
 
-      function renderEventTag(event) {
-        var html = `
-            <div class="mistake-event">
-                <p class="mistake-event-class">Múa đương đại</p>
-                <p class="mistake-event-song">Một đời đợi người</p>
-                <span
-                    class="mistake-event-info"
-                    style="margin-right: 5px;"
-                    >3/6</span
-                >
-                <span class="mistake-event-info">14/20</span>
-                <span class="mistake-event-info">PN</span>
-            </div>
-        `;
+      function renderEventTag(event, dateToRender) {
+        var div = $('<div></div>', {
+            "class": "mistake-event mistake-event-" + event.Branch.toLowerCase()
+        });
+
+        $('<p></p>', {
+            "class": "mistake-event-class"
+        }).text(event.Class.Name).appendTo(div);
+
+        $('<p></p>', {
+            "class": "mistake-event-song"
+        }).text(event.Song).appendTo(div);
+
+        debugger;
+        var session = getCurrentRecurrenceNumber(dateRevive(event.OpeningDate), dateToRender, event.DaysPerWeek);
+        $('<span></span>', {
+            "class": "mistake-event-info"
+        }).text(`${session}/${event.Sessions}`).appendTo(div);
+
+        $('<span></span>', {
+            "class": "mistake-event-info"
+        }).text('14/20').appendTo(div);
+
+        $('<span></span>', {
+            "class": "mistake-event-info"
+        }).text(event.Branch).appendTo(div);
+
+        return div;
       }
 
       async function getSchedule() {
@@ -994,12 +989,9 @@
 
       function getCurrentRecurrenceNumber(startRecur, currentDate, daysOfWeek) {
         var daysPerWeek = daysOfWeek.length;
-        var numberOfSessionGoneBy =
-          Math.floor(moment(currentDate).diff(moment(startRecur), "days") / 7) *
-          daysPerWeek;
+        var numberOfSessionGoneBy = Math.floor(moment(currentDate).diff(moment(startRecur), "days") / 7) * daysPerWeek;
 
-        var currentNumberOfSessionInWeek =
-          daysOfWeek.indexOf(currentDate.getDay()) + 1;
+        var currentNumberOfSessionInWeek = daysOfWeek.indexOf(currentDate.getDay()) + 1;
         return numberOfSessionGoneBy + currentNumberOfSessionInWeek;
       }
 
