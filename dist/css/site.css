@@ -41,3 +41,17 @@ table#calendar, th, td {
 #calendar {
     font-size: 14px;
 }
+
+.calendar-control {
+     padding: 10px;
+     display: flex;
+}
+
+.calendar-control-current-week {
+    margin-left: 10px;
+    font-size: 24px;
+}
+
+button#next {
+    border-left: 1px solid white;
+}
