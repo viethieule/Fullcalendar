@@ -924,6 +924,9 @@
             let tdEvents = $('<td></td>');
             let divEvents = eventGroup.events
               .reduce((jObject, event) => {
+                if (date.isBefore(moment(dateRevive(event.OpeningDate)), 'day')) {
+                  return jObject;
+                }
                 if (event.DaysPerWeek.indexOf(date.day().toString()) !== -1) {
                   jObject = jObject.add(renderEventTag(event, date.toDate()));
                 }
